@@ -23,24 +23,27 @@ function bam2pileup2consensus(bam_filename, out_stream, ref_filename,
     end
 end
 
+#modified samtools check that launches through shell and filters before pulling in information. also changed float64 to int8
 function check_samtools_version()
-    open(`samtools --version`) do cmd
-        version = match(r"samtools (\d+)\.(\d+)", readline(cmd))
-        major = parse(Float64, version.captures[1])
-        minor = parse(Float64, version.captures[2])
-        min_major = 1
-        min_minor = 4
-        recommended_version = "1.9"
-        if major < min_major || (major == min_major && minor < min_minor)
-            throw(ErrorException(string(
-                "samtools version $version too low.",
-                " samtools>=$min_version required;",
-                " samtools>=$recommended_version recommended.")))
-        elseif "$major.$minor" != recommended_version
-            @warn "samtools=$major.$minor. samtools=$recommended_version recommended."
-        end
-    end
-end
+           open(`sh -c "samtools --version | grep samtools | cut -d '.' -f 1,2"`) do cmd
+               version = match(r"samtools (\d+)\.(\d+)", readline(cmd))
+               major = parse(Int8, version.captures[1])
+               minor = parse(Int8, version.captures[2])
+               min_major = 1
+               min_minor = 4
+               recommended_version = "1.9"
+               if major < min_major || (major == min_major && minor < min_minor)
+                   throw(ErrorException(string(
+                       "samtools version $version too low.",
+                       " samtools>=$min_version required;",
+                       " samtools>=$recommended_version recommended.")))
+               elseif "$major.$minor" != recommended_version
+                   @warn "samtools=$major.$minor samtools=$recommended_version recommended."
+               end
+           end
+       end
+
+
 
 function pileup_consensus_fasta(pileup_stream, ref_fasta,
                                 ac_lower, af_lower, dp_upper)

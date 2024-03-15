@@ -25,7 +25,7 @@ end
 
 #modified samtools check that launches through shell and filters before pulling in information. also changed float64 to int8
 function check_samtools_version()
-           open(`sh -c "samtools --version | grep samtools | cut -d '.' -f 1,2"`) do cmd
+           open(`sh -c "samtools --version | head -n1"`) do cmd
                version = match(r"samtools (\d+)\.(\d+)", readline(cmd))
                major = parse(Int8, version.captures[1])
                minor = parse(Int8, version.captures[2])
